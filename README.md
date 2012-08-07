@@ -1,4 +1,6 @@
-google-authenticator-for-habari
+Google Authenticator For Habari
 ===============================
 
-***NOTE: DOESN'T WORK YET*** The Google Authenticator plugin for Habari gives you two-factor authentication using the Google Authenticator app for Android/iPhone/Blackberry.
+***NOTE: DOESN'T WORK YET*** 
+
+The Google Authenticator plugin for Habari gives you two-factor authentication using the Google Authenticator app for Android/iPhone/Blackberry.
