@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pluggable type="plugin">
+	<name>Google Authenticator for Habari</name>
+	<license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
+	<url>http://github.com/lildude/google-authenticator</url>
+	<author url="http://lildude.co.uk/">Colin Seymour</author>
+	<author url="http://habariproject.org/">The Habari Community</author>
+	<version>0.1</version>
+	<description><![CDATA[The Google Authenticator plugin for Habari gives you two-factor authentication using the Google Authenticator app for Android/iPhone/Blackberry.]]></description>
+	<copyright>2012</copyright>
+	<provides>
+		<feature>Google Authenticator</feature>
+	</provides>
+</pluggable>
