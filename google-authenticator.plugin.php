@@ -42,15 +42,15 @@ class GoogleAuthenticator extends Plugin
 		$ga->append( 'text', 'secret', 'user:ga_secret', _t( 'Secret' ), 'optionscontrol_text' );
 		$ga->secret->class[] = 'important item clear';
 		$ga->secret->value = isset( $edit_user->info->ga_secret ) ? $edit_user->info->ga_secret : self::create_secret();
-		$ga->secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '"/> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '"/>';
+		$ga->secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '"/> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '" onclick="jQuery(\'#qr_code\').toggleClass(\'hidden\');"/>';
 		
 		// Only append the QR code if the form has been saved and we're active.  This ensures we have the relevant info for the QR code. It also saves an unnecessary call to Google
 		if ( $edit_user->info->ga_active ) {
 			$chl = urlencode( "otpauth://totp/{$edit_user->info->ga_description}?secret={$edit_user->info->ga_secret}" );
 			$qr_url = "https://chart.googleapis.com/chart?cht=qr&amp;chs=300x300&amp;chld=H|0&amp;chl={$chl}";
-			$ga->append( 'static', 'qr_code', '<div class="formcontrol important item clear hidden"><span class="pct25">&nbsp;</span><span class="pct65"><img src="' . $qr_url . '"/><p>' . _t( 'Scan this with the Google Authenticator app.' ) . '</p></span></div>' );
+			$ga->append( 'static', 'qr_code', '<div class="formcontrol important item clear hidden" id="qr_code"><span class="pct25">&nbsp;</span><span class="pct65"><img src="' . $qr_url . '"/><p>' . _t( 'Scan this with the Google Authenticator app.' ) . '</p></span></div>' );
 		} else {
-			$ga->append( 'static', 'qr_code', '<div class="formcontrol important item clear hidden"><span class="pct25">&nbsp;</span><span class="pct65"><p>' . _t( 'Please check "Enable" above and save this form to view the QR code.' ) . '</p></span></div>' );
+			$ga->append( 'static', 'qr_code', '<div class="formcontrol important item clear hidden" id="qr_code"><span class="pct25">&nbsp;</span><span class="pct65"><p>' . _t( 'Please check "Enable" above and save this form to view the QR code.' ) . '</p></span></div>' );
 		}
 
 		$form->move_after( $ga, $form->user_info );
