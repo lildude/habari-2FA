@@ -76,8 +76,26 @@ class GoogleAuthenticator extends Plugin
 	 */
 	public function action_theme_loginform_controls()
 	{
-		echo '<label for="google_authenticator" class="incontent abovecontent">' . _t('Google Authenticator Code') . '</label>
-			  <input type="text" name="otp" id="otp" placeholder="' . _t('google authenticator code') . '" class="styledformelement" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">';
+		echo '<label for="google_authenticator" class="incontent abovecontent">' . _t( 'Google Authenticator Code' ) . '</label>
+			  <input type="text" name="otp" id="otp" placeholder="' . _t( 'google authenticator code' ) . '" class="styledformelement" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">';
+	}
+	
+	/**
+	 * Disable autocomplete on Google Authenticator field
+	 */
+	public function action_theme_loginform_after()
+	{
+		echo '<script type="text/javascript">try{document.getElementById("otp").setAttribute("autocomplete","off"");}catch(e){}</script>';
+	}
+	
+	/**
+	 * Verify Google Authenticator code provided by user.
+	 * 
+	 * This authentication happens before Habari authenticates the username and password
+	 */
+	public function action_user_authenticate()
+	{
+		
 	}
 	
 	/*-----:[ HELPER FUNCTIONS ]:----- */
