@@ -52,7 +52,6 @@ class GoogleAuthenticator extends Plugin
 		$ga->description->helptext = _t( "Description that you'll see in the Google Authenticator app on your phone." );
 		$ga->description->value = isset( $edit_user->info->ga_description ) ? $edit_user->info->ga_description : 'Habari Blog' . Options::get( 'title' );
 
-		// TODO: Add javascript to regenerate code and show/hide QR code.
 		$ga->append( 'text', 'secret', 'user:ga_secret', _t( 'Secret' ), 'optionscontrol_text' );
 		$ga->secret->class[] = 'important item clear';
 		$ga->secret->value = isset( $edit_user->info->ga_secret ) ? $edit_user->info->ga_secret : self::create_secret();
@@ -68,6 +67,17 @@ class GoogleAuthenticator extends Plugin
 		}
 
 		$form->move_after( $ga, $form->user_info );
+	}
+	
+	/**
+	 * Add Google Authenticator field to the login form
+	 *
+	 * We only use this if the account has Google Authenticator enabled
+	 */
+	public function action_theme_loginform_controls()
+	{
+		echo '<label for="google_authenticator" class="incontent abovecontent">' . _t('Google Authenticator Code') . '</label>
+			  <input type="text" name="otp" id="otp" placeholder="' . _t('google authenticator code') . '" class="styledformelement" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">';
 	}
 	
 	/*-----:[ HELPER FUNCTIONS ]:----- */
