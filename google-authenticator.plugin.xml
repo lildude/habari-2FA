@@ -4,11 +4,25 @@
 	<license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
 	<url>http://github.com/lildude/google-authenticator</url>
 	<author url="http://lildude.co.uk/">Colin Seymour</author>
-	<author url="http://habariproject.org/">The Habari Community</author>
-	<version>0.1</version>
+	<version>1.0</version>
 	<description><![CDATA[The Google Authenticator plugin for Habari gives you two-factor authentication using the Google Authenticator app for Android/iPhone/Blackberry.]]></description>
 	<copyright>2012</copyright>
+	<guid>2f98c6f8-6f0d-4bb1-941a-bcb9d6ce0fe3</guid>
 	<provides>
 		<feature>Google Authenticator</feature>
 	</provides>
+	<help>
+		<value><![CDATA[<p>Using the Google Authenticator plugin is simple.  Activate the plugin and then...</p>
+		<ol>
+		<li>Go to the Users configuration and select your user</li>
+		<li>Check `Enable` to activate Google Authenticator for this user</li>
+		<li>Modify the `Description` if you wish. This is the description you'll see in the Google Authenticator App.</li>
+		<li>A unique `Secret` should be automatically generated.  Feel free to regenerate a new one at any time.</li>
+		<li>Save your settings.  This is required in order for the QR code to be generated using the correct content.</li>
+		<li>Once you've save your settings, click `Show/Hide QR code` to view your QR code.</li>
+		<li>Open Google Authenticator on your phone and add a new account.  The easiest option is to scan the QR code, but you can manually enter the account information.  Remember to select "Time based" for the key type if you chose to enter it manually.</li>
+		</ol>
+		<p>Now when you login as this user, you will need to remember to supply a valid Google Authenticator Code from your phone.  All users will see the "Google Authenticator Code" box on the login form, but the field will only be used for 2-step authentication of users with Google Authenticator enabled on their account.</p>
+		]]></value>
+	</help>
 </pluggable>
