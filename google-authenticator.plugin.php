@@ -17,8 +17,13 @@ class GoogleAuthenticator extends Plugin
 	
 	/**
 	 * Add Google Authenticator fields to the User form
+	 * 
+	 * @access public
+	 * @param object $form
+	 * @param object $user
+	 * @return void
 	 */
-	public function action_form_user( $form, $edit_user )
+	public function action_form_user( $form, $user )
 	{
 		$ga = $form->append( 'wrapper', 'google_authenticator', 'Google Authenticator' );
 		$ga->class = 'container settings';
@@ -27,23 +32,26 @@ class GoogleAuthenticator extends Plugin
 		
 		$ga->append( 'checkbox', 'active', 'user:ga_active', _t( 'Enable' ), 'optionscontrol_checkbox' );
 		$ga->active->class[] = 'important item clear';
+		$ga->active->value = ( $user->info->ga_active ) ?  $user->info->ga_active : 0;
 		
 		$ga->append( 'checkbox', 'relaxed_mode', 'user:ga_relaxed_mode', _t( 'Relaxed Mode' ), 'optionscontrol_checkbox' );
 		$ga->relaxed_mode->class[] = 'important item clear';
 		$ga->relaxed_mode->helptext = _t( 'Relaxed mode allows for more time drifting on your phone clock (±4 min) ');
+		$ga->relaxed_mode->value = ( $user->info->ga_relaxed_mode ) ?  $user->info->ga_relaxed_mode : 0;
 		
 		$ga->append( 'text', 'description', 'user:ga_description', _t( 'Description' ), 'optionscontrol_text' );
 		$ga->description->class[] = 'important item clear';
 		$ga->description->helptext = _t( "Description that you'll see in the Google Authenticator app on your phone." );
-		$ga->description->value = isset( $edit_user->info->ga_description ) ? $edit_user->info->ga_description : 'Habari Blog: ' . Options::get( 'title' );
+		$ga->description->value = ( $user->info->ga_description != '' ) ? $user->info->ga_description : 'Habari Blog: ' . Options::get( 'title' );
 
 		$ga->append( 'text', 'secret', 'user:ga_secret', _t( 'Secret' ), 'optionscontrol_text' );
 		$ga->secret->class[] = 'important item clear';
 		$ga->secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '" id="create_secret" /> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '" id="show_hide_qr" />';
+		$ga->secret->value = ( $user->info->ga_secret ) ? $user->info->ga_secret : self::create_secret();
 		
 		// Only append the QR code if the form has been saved and we're active.  This ensures we have the relevant info for the QR code. It also saves an unnecessary call to Google
-		if ( $edit_user->info->ga_active ) {
-			$chl = urlencode( "otpauth://totp/{$edit_user->info->ga_description}?secret={$edit_user->info->ga_secret}" );
+		if ( $user->info->ga_active ) {
+			$chl = urlencode( "otpauth://totp/{$user->info->ga_description}?secret={$user->info->ga_secret}" );
 			$qr_url = "https://chart.googleapis.com/chart?cht=qr&amp;chs=300x300&amp;chld=H|0&amp;chl={$chl}";
 			$ga->append( 'static', 'qr_code', '<div class="formcontrol important item clear" id="qr_code" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><img src="' . $qr_url . '"/><p>' . _t( 'Scan this with the Google Authenticator app.' ) . '</p></span></div>' );
 		} else {
@@ -57,6 +65,9 @@ class GoogleAuthenticator extends Plugin
 	 * Add Google Authenticator field to the login form
 	 *
 	 * We only use this if the account has Google Authenticator enabled
+	 * 
+	 * @access public
+	 * @return void
 	 */
 	public function action_theme_loginform_controls()
 	{
@@ -68,6 +79,11 @@ class GoogleAuthenticator extends Plugin
 	 * Verify Google Authenticator code provided by user.
 	 * 
 	 * This authentication happens before Habari authenticates the username and password
+	 * 
+	 * @access public
+	 * @param object $user
+	 * @param string $username
+	 * @return boolean|object Returns false on failure or an empty StdClass() object on success
 	 */
 	public function filter_user_authenticate( $user, $username )
 	{
@@ -96,6 +112,10 @@ class GoogleAuthenticator extends Plugin
 	 * If the user has relaxed mode enabled, we allow 4 mins of leeway either side
 	 * to allow for some wider time drift.  Normal leeway is 30 seconds either side
 	 * 
+	 * @access private
+	 * @param string $secret
+	 * @param string $otp
+	 * @param boolean $relaxed
 	 * @return boolean 
 	 */
 	private static function verify( $secret, $otp, $relaxed )
@@ -133,6 +153,22 @@ class GoogleAuthenticator extends Plugin
 			}	
 		}
 		return false;
+	}
+	
+	/**
+	 * Generate a random 16 character secret.
+	 * 
+	 * @access private
+	 * @return string $secret A 16 character secret, randomly chosen from the allowed Base32 characters
+	 */
+	private static function create_secret() 
+	{
+		$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // allowed characters in Base32
+		$secret = '';
+		for ( $i = 0; $i < 16; $i++ ) {
+			$secret .= substr( $chars, rand( 0, strlen( $chars ) - 1 ), 1 );
+		}
+		return $secret;
 	}
 }
 ?>
