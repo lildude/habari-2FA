@@ -77,15 +77,7 @@ class GoogleAuthenticator extends Plugin
 	public function action_theme_loginform_controls()
 	{
 		echo '<label for="google_authenticator" class="incontent abovecontent">' . _t( 'Google Authenticator Code' ) . '</label>
-			  <input type="text" name="otp" id="otp" placeholder="' . _t( 'google authenticator code' ) . '" class="styledformelement" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">';
-	}
-	
-	/**
-	 * Disable autocomplete on Google Authenticator field
-	 */
-	public function action_theme_loginform_after()
-	{
-		echo '<script type="text/javascript">try{document.getElementById("otp").setAttribute("autocomplete","off"");}catch(e){}</script>';
+			  <input type="text" name="otp" id="otp" placeholder="' . _t( 'google authenticator code' ) . '" class="styledformelement" autocomplete="off" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">';
 	}
 	
 	/**
@@ -93,12 +85,70 @@ class GoogleAuthenticator extends Plugin
 	 * 
 	 * This authentication happens before Habari authenticates the username and password
 	 */
-	public function action_user_authenticate()
+	public function filter_user_authenticate( $user, $username )
 	{
+		// Get the user object
+		$user = User::get_by_name( $username );
 		
+		// Is GA active for this user?
+		if ( $user->info->ga_active == 1 ) {
+			$secret = trim( $user->info->ga_secret );
+			$relaxed = $user->info->ga_relaxed_mode;
+			$otp = intval( trim( $_POST['otp'] ) );
+			if ( ! self::verify( $secret, $otp, $relaxed ) ) {
+				EventLog::log( _t( 'Invalid or expired Google Authenticator code' ), 'warning', 'authentication', 'habari' );
+				Session::error( _t( 'Invalid/Expired Google Authenticator Code' ) );
+				return false;
+			}
+		}
+		return new StdClass(); // By default return an empty object so we fall through to the password authentication.
 	}
 	
 	/*-----:[ HELPER FUNCTIONS ]:----- */
+	
+	/**
+	 * Verify the Google Authenticator code submitted.
+	 * 
+	 * If the user has relaxed mode enabled, we allow 4 mins of leeway either side
+	 * to allow for some wider time drift.  Normal leeway is 30 seconds either side
+	 * 
+	 * @return boolean 
+	 */
+	private static function verify( $secret, $otp, $relaxed )
+	{
+		require_once( 'lib/base32.php' );
+		if ( $relaxed ) {
+			$start = -8;
+			$end = 8; 
+		} else {
+			$start = -1;
+			$end = 1; 	
+		}
 
+		$tm = floor( time() / 30 );
+
+		$secret = Base32::decode( $secret );
+		// Keys from before and after are valid too.
+		for ( $i = $start; $i <= $end; $i++ ) {
+			// Pack time into binary string
+			$time = chr(0) . chr(0) . chr(0) . chr(0) . pack( 'N*', $tm+$i );
+			// Hash it with users secret key
+			$hm = hash_hmac( 'SHA1', $time, $secret, true );
+			// Use last nibble of result as index/offset
+			$offset = ord( substr( $hm, -1) ) & 0x0F;
+			// grab 4 bytes of the result
+			$hashpart = substr( $hm, $offset, 4 );
+			// Unpack binary value
+			$value = unpack( "N", $hashpart );
+			$value = $value[1];
+			// Only 32 bits
+			$value = $value & 0x7FFFFFFF;
+			$value = $value % 1000000;
+			if ( $value == $otp ) {
+				return true;
+			}	
+		}
+		return false;
+	}
 }
 ?>
