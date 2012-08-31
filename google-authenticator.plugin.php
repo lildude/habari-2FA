@@ -1,21 +1,6 @@
 <?php
 class GoogleAuthenticator extends Plugin
 {
-	public function action_init( )
-	{
-		
-	}
-	
-	public function action_plugin_activation( )
-	{
-
-	}
-	
-	public function action_plugin_deactivation( )
-	{
-		
-	}
-	
 	/**
      * Add custom Javascript to "User" page - we don't need to load it on others, so don't.
      *
