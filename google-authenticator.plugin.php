@@ -32,12 +32,10 @@ class GoogleAuthenticator extends Plugin
 		
 		$ga->append( 'checkbox', 'active', 'user:ga_active', _t( 'Enable' ), 'optionscontrol_checkbox' );
 		$ga->active->class[] = 'important item clear';
-		$ga->active->value = ( $user->info->ga_active ) ?  $user->info->ga_active : 0;
-		
+
 		$ga->append( 'checkbox', 'relaxed_mode', 'user:ga_relaxed_mode', _t( 'Relaxed Mode' ), 'optionscontrol_checkbox' );
 		$ga->relaxed_mode->class[] = 'important item clear';
 		$ga->relaxed_mode->helptext = _t( 'Relaxed mode allows for more time drifting on your phone clock (±4 min) ');
-		$ga->relaxed_mode->value = ( $user->info->ga_relaxed_mode ) ?  $user->info->ga_relaxed_mode : 0;
 		
 		$ga->append( 'text', 'description', 'user:ga_description', _t( 'Description' ), 'optionscontrol_text' );
 		$ga->description->class[] = 'important item clear';
