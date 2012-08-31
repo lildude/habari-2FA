@@ -35,11 +35,10 @@ class GoogleAuthenticator extends Plugin
 		$ga->append( 'text', 'description', 'user:ga_description', _t( 'Description' ), 'optionscontrol_text' );
 		$ga->description->class[] = 'important item clear';
 		$ga->description->helptext = _t( "Description that you'll see in the Google Authenticator app on your phone." );
-		$ga->description->value = isset( $edit_user->info->ga_description ) ? $edit_user->info->ga_description : 'Habari Blog' . Options::get( 'title' );
+		$ga->description->value = isset( $edit_user->info->ga_description ) ? $edit_user->info->ga_description : 'Habari Blog: ' . Options::get( 'title' );
 
 		$ga->append( 'text', 'secret', 'user:ga_secret', _t( 'Secret' ), 'optionscontrol_text' );
 		$ga->secret->class[] = 'important item clear';
-		$ga->secret->value = isset( $edit_user->info->ga_secret ) ? $edit_user->info->ga_secret : self::create_secret();
 		$ga->secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '" id="create_secret" /> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '" id="show_hide_qr" />';
 		
 		// Only append the QR code if the form has been saved and we're active.  This ensures we have the relevant info for the QR code. It also saves an unnecessary call to Google
