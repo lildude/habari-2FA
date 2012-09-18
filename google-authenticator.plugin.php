@@ -11,7 +11,7 @@ class GoogleAuthenticator extends Plugin
     public function action_admin_header( $theme )
     {
 		if ( Controller::get_var('page') == 'user' ) {
-            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/admin.js', 'ga-admin', 'jquery' );
+			Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/admin.js', 'ga-admin', 'jquery' );
 		}
     }
 	
@@ -30,23 +30,22 @@ class GoogleAuthenticator extends Plugin
 		
 		$ga->append( 'static', 'google_authenticator', '<h2>' . _t( 'Google Authenticator' ) . '</h2>' );
 		
-		$ga->append( 'checkbox', 'active', 'user:ga_active', _t( 'Enable' ), 'optionscontrol_checkbox' );
-		$ga->active->class[] = 'important item clear';
+		$ga->append( 'checkbox', 'ga_active', $user, _t( 'Enable' ), 'optionscontrol_checkbox' );
+		$ga->ga_active->class[] = 'important item clear';
 
-		$ga->append( 'checkbox', 'relaxed_mode', 'user:ga_relaxed_mode', _t( 'Relaxed Mode' ), 'optionscontrol_checkbox' );
-		$ga->relaxed_mode->class[] = 'important item clear';
-		$ga->relaxed_mode->helptext = _t( 'Relaxed mode allows for more time drifting on your phone clock (±4 min) ');
+		$ga->append( 'checkbox', 'ga_relaxed_mode', $user, _t( 'Relaxed Mode' ), 'optionscontrol_checkbox' );
+		$ga->ga_relaxed_mode->class[] = 'important item clear';
+		$ga->ga_relaxed_mode->helptext = _t( 'Relaxed mode allows for more time drifting on your phone clock (±4 min) ');
 		
-		$ga->append( 'text', 'description', 'user:ga_description', _t( 'Description' ), 'optionscontrol_text' );
-		$ga->description->class[] = 'important item clear';
-		$ga->description->helptext = _t( "Description that you'll see in the Google Authenticator app on your phone." );
-		$ga->description->value = ( $user->info->ga_description != '' ) ? $user->info->ga_description : 'Habari Blog: ' . Options::get( 'title' );
+		$ga->append( 'text', 'ga_description', $user, _t( 'Description' ), 'optionscontrol_text' );
+		$ga->ga_description->class[] = 'important item clear';
+		$ga->ga_description->helptext = _t( "Description that you'll see in the Google Authenticator app on your phone." );
+		$ga->ga_description->value = ( $user->info->ga_description != '' ) ? $user->info->ga_description : 'Habari Blog: ' . Options::get( 'title' );
 
-		$ga->append( 'text', 'secret', 'user:ga_secret', _t( 'Secret' ), 'optionscontrol_text' );
-		$ga->secret->class[] = 'important item clear';
-		$ga->secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '" id="create_secret" /> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '" id="show_hide_qr" />';
-		// We need to do this because of Issue #364 (https://github.com/habari/habari/issues/364). Can remove one this issue is resolved.
-		$ga->secret->value = ( $user->info->ga_secret ) ? $user->info->ga_secret : self::create_secret();
+		$ga->append( 'text', 'ga_secret', $user, _t( 'Secret' ), 'optionscontrol_text' );
+		$ga->ga_secret->class[] = 'important item clear';
+		$ga->ga_secret->readonly = 'readonly';
+		$ga->ga_secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '" id="create_secret" /> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '" id="show_hide_qr" />';
 		
 		// Only append the QR code if the form has been saved and we're active.  This ensures we have the relevant info for the QR code. It also saves an unnecessary call to Google
 		if ( $user->info->ga_active ) {
@@ -152,23 +151,6 @@ class GoogleAuthenticator extends Plugin
 			}	
 		}
 		return false;
-	}
-	
-	/**
-	 * Generate a random 16 character secret.
-	 * 
-	 * @todo Remove this function when issue 364 (https://github.com/habari/habari/issues/364) has been resolved.
-	 * @access private
-	 * @return string $secret A 16 character secret, randomly chosen from the allowed Base32 characters
-	 */
-	private static function create_secret() 
-	{
-		$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // allowed characters in Base32
-		$secret = '';
-		for ( $i = 0; $i < 16; $i++ ) {
-			$secret .= substr( $chars, rand( 0, strlen( $chars ) - 1 ), 1 );
-		}
-		return $secret;
 	}
 }
 ?>
