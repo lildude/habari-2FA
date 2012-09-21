@@ -25,6 +25,7 @@ class GoogleAuthenticator extends Plugin
 	 */
 	public function action_form_user( $form, $user )
 	{
+		$this->add_template( 'ga_textmulti', dirname( $this->get_file() ) . '/lib/textmulti.php' );
 		$ga = $form->append( 'wrapper', 'google_authenticator', 'Google Authenticator' );
 		$ga->class = 'container settings';
 		
@@ -47,6 +48,10 @@ class GoogleAuthenticator extends Plugin
 		$ga->ga_secret->readonly = 'readonly';
 		$ga->ga_secret->helptext = '<input type="button" value="' . _t( 'Create new secret' ) . '" id="create_secret" /> <input type="button" value="' . _t( 'Show/Hide QR code' ) . '" id="show_hide_qr" />';
 		
+		$ga->append( 'textmulti', 'ga_remember', $user, _t( 'Remembered hosts'), 'ga_textmulti' );
+		$ga->ga_remember->class[] = 'important item clear';
+		$ga->ga_remember->helptext = _t( 'Remove entries to revoke access.' );
+
 		// Only append the QR code if the form has been saved and we're active.  This ensures we have the relevant info for the QR code. It also saves an unnecessary call to Google
 		if ( $user->info->ga_active ) {
 			$chl = urlencode( "otpauth://totp/{$user->info->ga_description}?secret={$user->info->ga_secret}" );
@@ -69,8 +74,15 @@ class GoogleAuthenticator extends Plugin
 	 */
 	public function action_theme_loginform_controls()
 	{
-		echo '<label for="google_authenticator" class="incontent abovecontent">' . _t( 'Google Authenticator Code' ) . '</label>
-			  <input type="text" name="otp" id="otp" placeholder="' . _t( 'google authenticator code' ) . '" class="styledformelement" autocomplete="off" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">';
+		if ( ! isset( $_COOKIE['ga_remember'] ) ) {
+			echo '<p><label for="google_authenticator" class="incontent abovecontent">' . _t( 'Google Authenticator Code' ) . '</label>
+			  <input type="text" name="otp" id="otp" placeholder="' . _t( 'google authenticator code' ) . '" class="styledformelement" autocomplete="off" title="' . _t( 'If you don\'t have Google Authenticator enabled for your user account, leave this field empty.' ) . '">
+			  </p>
+			  <p>'. _t( 'Remember Google Authenticator code for 30 days on this computer' ). '
+			  <input type="checkbox" name="rem_ga_30days" id="rem_ga_30days" onclick="jQuery(\'#ga_name\').toggle();"></p>
+			  <p><input style="display:none" type="text" name="ga_name" id="ga_name" placeholder="' . _t( 'Computer name' ) . '" class="styledformelement" autocomplete="off" title="' . _t( 'A unique name for this computer.' ) . '">
+			  </p>';
+		}
 	}
 	
 	/**
@@ -87,16 +99,42 @@ class GoogleAuthenticator extends Plugin
 	{
 		// Get the user object
 		$user = User::get_by_name( $username );
-		
 		// Is GA active for this user?
 		if ( $user->info->ga_active == 1 ) {
 			$secret = trim( $user->info->ga_secret );
+			// If we're remembered, check the contents of the cookie. It should be a salted hash of the secret
+			if ( isset( $_COOKIE['ga_remember'] ) ) {
+				// Grab the current list of remembered hosts
+				list( $ga_rem_user, $host, $token ) = explode( ':', $_COOKIE['ga_remember'] );
+				$remembered = $user->info->ga_remember;
+				if ( $username == $ga_rem_user && isset( $remembered[$host] ) && $remembered[$host] == $token  ) {
+					return new StdClass();
+				}
+				else {
+					// unset the cookie as it's probably bogus and bounce back to the login page
+					setcookie( 'ga_remember', '', 1 );
+					Utils::redirect();
+				}
+			}
 			$relaxed = $user->info->ga_relaxed_mode;
 			$otp = intval( trim( $_POST['otp'] ) );
 			if ( ! self::verify( $secret, $otp, $relaxed ) ) {
 				EventLog::log( _t( 'Invalid or expired Google Authenticator code' ), 'warning', 'authentication', 'habari' );
 				Session::error( _t( 'Invalid/Expired Google Authenticator Code' ) );
 				return false;
+			}
+			// Set the 30-day cookie if we've been asked to
+
+			if ( isset( $_POST['rem_ga_30days'] ) ) {
+				$token = md5( $_POST['ga_name'] . $secret . time() );
+				// Cookie is username:host:token
+				setcookie( 'ga_remember', "{$username}:{$_POST['ga_name']}:{$token}", time()+2592000 );
+				$remembered = $user->info->ga_remember;
+				// Save the cookie value to the DB for verification later
+				// ga_remember is an array of machine => md5( $name . $secret );
+				$remembered[$_POST['ga_name']] = $token;
+				$user->info->ga_remember = $remembered;
+				$user->update();
 			}
 		}
 		return new StdClass(); // By default return an empty object so we fall through to the password authentication.
