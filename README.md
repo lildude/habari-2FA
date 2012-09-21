@@ -25,3 +25,15 @@ Usage:
 Once active and configured, using Google Authenticator with Habari is like using it with any other service.  When a user with "Google Authenticator" enabled on their account logs in, they will need to specify a Google Authenticator code generated on their phone in the `Google Authenticator Code` field on the login form.
 
 The `Google Authenticator Code` is only considered and used for users that have Google Authenticator enabled.
+
+
+Change Log:
+-----------
+
+* 1.2
+  * Added "Remember me on this computer for 30 days" functionality.
+  * Access to previously remembered hosts can also be revoked from the User's preferences page.
+* 1.1
+  * Implemented a better method of saving the user preferences and at the same time removed duplicate code.
+* 1.0
+  * Initial release.
