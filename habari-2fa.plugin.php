@@ -1,4 +1,5 @@
 <?php
+// TODO: Use intermediate 2FA screen for users with 2FA enabled.
 class Habari2FA extends Plugin
 {
 	/**
@@ -10,9 +11,9 @@ class Habari2FA extends Plugin
      */
     public function action_admin_header( $theme )
     {
-		if ( Controller::get_var('page') == 'user' ) {
-			Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/admin.js', 'h2fa-admin', 'jquery' );
-		}
+			if ( Controller::get_var('page') == 'user' ) {
+				Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/admin.js', 'h2fa-admin', 'jquery' );
+			}
     }
 
 	/**
@@ -57,7 +58,8 @@ class Habari2FA extends Plugin
 			$chl = urlencode( "otpauth://totp/{$user->info->h2fa_description}?secret={$user->info->h2fa_secret}" );
 			$qr_url = "https://chart.googleapis.com/chart?cht=qr&amp;chs=300x300&amp;chld=H|0&amp;chl={$chl}";
 			$h2fa->append( 'static', 'qr_code', '<div class="formcontrol important item clear" id="qr_code" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><img src="' . $qr_url . '"/><p>' . _t( 'Scan this with the Google Authenticator (or similar) app.' ) . '</p></span></div>' );
-		} else {
+		}
+		else {
 			$h2fa->append( 'static', 'qr_code', '<div class="formcontrol important item clear" id="qr_code" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><p>' . _t( 'Please check "Enable" above and save this form to view the QR code.' ) . '</p></span></div>' );
 		}
 
