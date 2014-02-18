@@ -56,10 +56,17 @@ class Habari2FA extends Plugin
 
 		// Only append the QR code if the form has been saved and we're active.  This ensures we have the relevant info for the QR code. It also saves an unnecessary call to Google
 		if ( $user->info->h2fa_active ) {
-			$chl = urlencode( "otpauth://totp/{$user->info->h2fa_description}?secret={$user->info->h2fa_secret}" );
-			$qr_url = "https://chart.googleapis.com/chart?cht=qr&amp;chs=300x300&amp;chld=H|0&amp;chl={$chl}";
-			$h2fa->append( 'static', 'qr_code', '<div class="formcontrol important item clear" id="qr_code" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><img src="' . $qr_url . '"/><p>' . _t( 'Scan this with the Google Authenticator (or similar) app.' ) . '</p></span></div>' );
-			$h2fa->append( 'static', 'qr_code1', '<script>$("qr-img").qrcode();</script><div class="formcontrol important item clear" id="qr_code1" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><span id="qr-img"></span><p>' . _t( 'Scan this with the Google Authenticator (or similar) app.' ) . '</p></span></div>' );
+			$chl = "otpauth://totp/{$user->info->h2fa_description} 2?secret={$user->info->h2fa_secret}";
+			$h2fa->append( 'static', 'qr_code', '<script type="text/javascript">(function ($) {
+				var init = function () {$("#qr-img").qrcode({
+					render: "div",
+					size: 300,
+					ecLevel: "H",
+					text: "'.$chl.'",
+					background: "#fff"
+				});}
+				$(init);
+			})(jQuery);</script><div class="formcontrol important item clear" id="qr_code" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><span id="qr-img"></span><p>' . _t( 'Scan this with the Google Authenticator (or similar) app.' ) . '</p></span></div>' );
 		}
 		else {
 			$h2fa->append( 'static', 'qr_code', '<div class="formcontrol important item clear" id="qr_code" style="display: none"><span class="pct25">&nbsp;</span><span class="pct65"><p>' . _t( 'Please check "Enable" above and save this form to view the QR code.' ) . '</p></span></div>' );
