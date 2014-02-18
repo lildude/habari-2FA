@@ -127,7 +127,7 @@ class Habari2FA extends Plugin
 			}
 			// Set the 30-day cookie if we've been asked to
 			if ( isset( $_POST['rem_h2fa_30days'] ) ) {
-				$token = md5( $_POST['h2fa_name'] ) . $secret );
+				$token = md5( $_POST['h2fa_name'] . $secret );
 				// Cookie is token
 				setcookie( 'h2fa_remember', "{$_POST['h2fa_name']}:{$token}", time()+2592000 );
 				$remembered = $user->info->h2fa_remember;
