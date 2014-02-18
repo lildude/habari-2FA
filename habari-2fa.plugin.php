@@ -107,9 +107,9 @@ class Habari2FA extends Plugin
 			// If we're remembered, check the contents of the cookie. It should be a salted hash of the secret
 			if ( isset( $_COOKIE['h2fa_remember'] ) ) {
 				// Grab the current list of remembered hosts
-				list( $h2fa_rem_user, $host, $token ) = explode( ':', $_COOKIE['h2fa_remember'] );
+				list( $host, $token ) = explode( ':', $_COOKIE['h2fa_remember'] );
 				$remembered = $user->info->h2fa_remember;
-				if ( $username == $h2fa_rem_user && isset( $remembered[$host] ) && $remembered[$host] == $token  ) {
+				if ( isset( $remembered[$host] ) && $remembered[$host] == $token && md5( $host . $secret ) == $token ) {
 					return new StdClass();
 				}
 				else {
@@ -126,11 +126,10 @@ class Habari2FA extends Plugin
 				return false;
 			}
 			// Set the 30-day cookie if we've been asked to
-
 			if ( isset( $_POST['rem_h2fa_30days'] ) ) {
-				$token = md5( $_POST['h2fa_name'] . $secret . time() );
-				// Cookie is username:host:token
-				setcookie( 'h2fa_remember', "{$username}:{$_POST['h2fa_name']}:{$token}", time()+2592000 );
+				$token = md5( $_POST['h2fa_name'] ) . $secret );
+				// Cookie is token
+				setcookie( 'h2fa_remember', "{$_POST['h2fa_name']}:{$token}", time()+2592000 );
 				$remembered = $user->info->h2fa_remember;
 				// Save the cookie value to the DB for verification later
 				// h2fa_remember is an array of machine => md5( $name . $secret );
